@@ -1,11 +1,13 @@
 mod post_result;
 mod post_body;
 mod duration_formatter;
+mod display_time_component;
 
 use std::cmp::PartialEq;
 use post_result::PostResult;
 use post_body::{Body, SearchOptions, Games, RangeTime, Gameplay, RangeYear};
 use duration_formatter::DurationFormatter;
+use display_time_component::display_time_component;
 use reqwest::Client;
 use clap::{Parser, ValueEnum};
 use clap_num::number_range;
@@ -127,34 +129,6 @@ struct Args {
     json: bool,
     #[clap(short, long)]
     info: bool
-}
-
-fn get_accuracy_color(count: u32) -> (u8, u8, u8) {
-    match count {
-        0..=4 => (255, 58, 58),
-        5..=9 => (204, 59, 81),
-        10..=14 => (130, 73, 133),
-        15..=19 => (86, 80, 161),
-        20..=24 => (72, 92, 171),
-        25..=29 => (58, 109, 181),
-        30.. => (40, 127, 194)
-    }
-}
-
-fn format_with_color(value: &str, count: u32) -> String {
-    let color = get_accuracy_color(count);
-    value.to_string().truecolor(color.0, color.1, color.2).to_string()
-}
-
-fn display_time_component(comp_name: &str, comp_count: u32, comp_format: &str, args: &Args) {
-    if comp_count > 0 {
-        print!("{}:\t{}", comp_name.truecolor(200, 200, 200), format_with_color(&comp_format, comp_count));
-        let mut polled = "".to_string();
-        if args.info {
-            polled = format!("\t({})", comp_count).truecolor(120, 120, 120).to_string();
-        }
-        println!("{}", polled);
-    }
 }
 
 #[tokio::main]
