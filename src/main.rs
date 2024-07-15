@@ -16,7 +16,7 @@ use colored::Colorize;
 use strum_macros::{Display, EnumString};
 
 #[derive(ValueEnum, Clone, PartialEq, Copy)]
-enum Bool {
+enum ToggleOption {
     Always,
     Never
 }
@@ -113,6 +113,8 @@ struct Args {
     #[clap(short, long, default_value_t = Bool::Always, value_enum)]
     color: Bool,
     #[clap(short = 'S', long, default_value_t = SortCategory::MostPopular)]
+    #[clap(short, long, default_value_t = ToggleOption::Always, value_enum)]
+    color: ToggleOption,
     sort: SortCategory,
     #[clap(short, long, default_value_t = false)]
     reverse: bool,
@@ -147,9 +149,7 @@ async fn main() {
     }
     args.search = new_search;
 
-    if args.color == Bool::Never {
-        colored::control::set_override(false);
-    }
+    if args.color == ToggleOption::Never { colored::control::set_override(false) }
 
     let body = Body {
         search_type: "games".to_string(),
