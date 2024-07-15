@@ -110,9 +110,9 @@ struct Args {
     search: Vec<String>,
     #[clap(short, long, default_value_t = 5, help = "Number of results to display")]
     size: u8,
-    #[clap(short, long, default_value_t = ToggleOption::Always, value_enum, help = "Colorize output")]
+    #[clap(short, long, default_value_t = ToggleOption::Always, value_enum, ignore_case = true, help = "Colorize output")]
     color: ToggleOption,
-    #[clap(short = 'S', long, default_value_t = SortCategory::MostPopular, value_enum, help = "Sort by category")]
+    #[clap(short = 'S', long, default_value_t = SortCategory::MostPopular, value_enum, ignore_case = true, help = "Sort by category")]
     sort: SortCategory,
     #[clap(short, long, default_value_t = false, help = "Reverse sort order")]
     reverse: bool,
@@ -120,7 +120,7 @@ struct Args {
     year_min: u16,
     #[clap(long, alias = "max-year", default_value_t = 2024, value_parser=parse_year, help = "Maximum release year")]
     year_max: u16,
-    #[clap(short, long, default_value = "all", value_enum, help = "Platform to search for")]
+    #[clap(short, long, default_value = "all", value_enum, ignore_case = true, help = "Platform to search for")]
     platform: Platform,
     #[clap(long, conflicts_with = "no_dlc", help = "Show only DLCs")]
     dlc: bool,
