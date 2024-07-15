@@ -192,7 +192,7 @@ async fn main() {
         .await.unwrap().json::<PostResult>().await.unwrap();
 
     if args.json {
-        println!("{}", serde_json::to_string_pretty(&res).unwrap());
+        println!("{}", serde_json::to_string(&res).unwrap());
         return;
     }
 
