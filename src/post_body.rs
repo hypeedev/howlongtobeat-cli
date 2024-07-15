@@ -1,12 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct Struct {
-    #[serde(rename = "sortCategory")]
-    pub sort_category: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct RangeYear {
     pub min: String,
     pub max: String,
