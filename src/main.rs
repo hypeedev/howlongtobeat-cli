@@ -73,35 +73,36 @@ enum Platform {
     #[strum(serialize = "Emulated")]
     Emulated,
     #[strum(serialize = "Nintendo 3DS")]
-    #[value(name = "nintendo-3ds", aliases = &["nintendo3ds", "3ds"])]
+    #[value(name = "nintendo-3ds", aliases = &["nintendo 3ds", "nintendo3ds", "3ds"])]
     Nintendo3DS,
     #[strum(serialize = "Nintendo Switch")]
-    #[value(alias = "switch")]
+    #[value(aliases = &["nintendo switch", "switch"])]
     NintendoSwitch,
+    #[value(alias = "desktop")]
     PC,
     #[strum(serialize = "PlayStation 3")]
-    #[value(name = "playstation3", alias = "ps3")]
+    #[value(name = "playstation3", aliases = &["playstation 3", "ps3", "ps 3"])]
     PlayStation3,
     #[strum(serialize = "PlayStation 4")]
-    #[value(name = "playstation4", alias = "ps4")]
+    #[value(name = "playstation4", aliases = &["playstation 4", "ps4", "ps 4"])]
     PlayStation4,
     #[strum(serialize = "PlayStation 5")]
-    #[value(name = "playstation5", alias = "ps5")]
+    #[value(name = "playstation5", aliases = &["playstation 5", "ps5", "ps 5"])]
     PlayStation5,
     #[strum(serialize = "PlayStation Now")]
-    #[value(name = "playstation-now", aliases = &["playstationnow", "psnow"])]
+    #[value(name = "playstation-now", aliases = &["playstation now", "playstationnow", "psnow", "ps now"])]
     PlayStationNow,
     #[strum(serialize = "Wii U")]
-    #[value(alias = "wiiu")]
+    #[value(aliases = &["wii u", "wiiu"])]
     WiiU,
     #[strum(serialize = "Xbox 360")]
-    #[value(aliases = &["xbox-360", "x360", "360"])]
+    #[value(aliases = &["xbox 360", "xbox-360", "x360", "360"])]
     Xbox360,
     #[strum(serialize = "Xbox One")]
-    #[value(aliases = &["xboxone", "xone", "one"])]
+    #[value(aliases = &["xbox one", "xboxone", "xone", "one"])]
     XboxOne,
     #[strum(serialize = "Xbox Series X/S")]
-    #[value(aliases = &["xbox-xs", "xboxxs", "xs"])]
+    #[value(aliases = &["xbox xs", "xbox-xs", "xboxxs", "xs"])]
     XboxSeriesXS
 }
 
