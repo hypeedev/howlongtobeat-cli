@@ -3,11 +3,12 @@ mod post_body;
 mod duration_formatter;
 mod display_time_component;
 
-use std::cmp::PartialEq;
 use post_result::PostResult;
 use post_body::{Body, SearchOptions, Games, RangeTime, Gameplay, RangeYear};
 use duration_formatter::DurationFormatter;
 use display_time_component::display_time_component;
+
+use std::cmp::PartialEq;
 use reqwest::Client;
 use clap::{Parser, ValueEnum};
 use clap_num::number_range;
