@@ -1,0 +1,15 @@
+[package]
+name = "howlongtobeat-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.9", features = ["derive"] }
+clap-num = "1.1.1"
+colored = "2.1.0"
+reqwest = { version = "0.12.5" , features = ["json"]}
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
+strum = "0.26.3"
+strum_macros = "0.26.4"
+tokio = { version = "1.0.0", features = ["rt", "rt-multi-thread", "macros"] }
