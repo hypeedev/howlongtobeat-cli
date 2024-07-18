@@ -18,9 +18,10 @@ fn format_with_color(value: &str, count: u32) -> String {
     value.to_string().truecolor(color.0, color.1, color.2).to_string()
 }
 
-pub fn display_time_component(comp_name: &str, comp_count: u32, comp_format: &str, args: &Args) {
+pub fn display_time_component(indentation: u8, comp_name: &str, comp_count: u32, comp_format: &str, args: &Args) {
     if comp_count > 0 {
-        print!("{}:\t{}", comp_name.truecolor(200, 200, 200), format_with_color(&comp_format, comp_count));
+        if indentation > 0 { print!("\x1B[{}C", indentation) }
+        print!("{} {}", comp_name.truecolor(200, 200, 200), format_with_color(&comp_format, comp_count));
         let mut polled = "".to_string();
         if args.info {
             polled = format!("\t({})", comp_count).truecolor(120, 120, 120).to_string();

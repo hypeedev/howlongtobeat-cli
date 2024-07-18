@@ -10,14 +10,44 @@ use duration_formatter::DurationFormatter;
 use display_time_component::display_time_component;
 use args::{Args, ToggleOption};
 
-use reqwest::Client;
+use reqwest::{Client, ClientBuilder};
 use clap::Parser;
 use colored::Colorize;
+use viuer::Config;
+use image::DynamicImage;
+use futures::future::join_all;
 
 macro_rules! link {
     ($url:expr, $text:expr) => {
         format!("\x1B]8;;{}\x1B\\{}\x1B]8;;\x1B\\", $url, $text)
     };
+}
+
+fn get_terminal_image_dimensions(image: &DynamicImage) -> (u32, u32) {
+    let ratio = image.width() as f32 / image.height() as f32;
+    let width: u32;
+    let height: u32;
+    if ratio > 1.0 {
+        height = 7u32;
+        width = (height as f32 * ratio) as u32;
+    } else {
+        width = 10u32;
+        height = (width as f32 / ratio) as u32;
+    }
+    (width, (height as f32 / 2.15).round() as u32)
+}
+
+async fn fetch_images(client: Client, urls: Vec<String>) -> Vec<DynamicImage> {
+    let futures = urls.into_iter().map(|url| {
+        let client = client.clone();
+        async move {
+            let image = client.get(url).send().await.unwrap().bytes().await.unwrap();
+            let image = image::load_from_memory(&image).unwrap();
+            let image = DynamicImage::ImageRgba8(image.to_rgba8());
+            image
+        }
+    });
+    join_all(futures).await
 }
 
 #[tokio::main]
@@ -63,12 +93,19 @@ async fn main() {
         use_cache: true,
     };
 
-    let client = Client::new();
+    let client = ClientBuilder::new()
+        .default_headers(
+            reqwest::header::HeaderMap::from_iter(
+                vec![
+                    ("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"),
+                    ("Referer", "https://howlongtobeat.com"),
+                    ("Content-Type", "application/json"),
+                ].into_iter().map(|(k, v)| (k.parse().unwrap(), v.parse().unwrap()))
+            )
+        )
+        .build().unwrap();
     let res = client
         .post("https://howlongtobeat.com/api/search")
-        .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0")
-        .header("Referer", "https://howlongtobeat.com")
-        .header("Content-Type", "application/json")
         .body(serde_json::to_string(&body).unwrap())
         .send()
         .await.unwrap().json::<PostResult>().await.unwrap();
@@ -78,15 +115,48 @@ async fn main() {
         return;
     }
 
+    let mut images: Vec<DynamicImage> = Vec::new();
+    if args.images {
+        let urls: Vec<String> = res.data.iter().map(|game| "https://howlongtobeat.com/games/".to_owned() + &*game.game_image.to_string() + "?width=100").collect();
+        images = fetch_images(client, urls.clone()).await;
+    }
+
     println!("Found {} Game{}", res.count, if res.count == 1 { "" } else { "s" });
 
-    for game in res.data {
+    for (index, game) in res.data.into_iter().enumerate() {
         println!();
+
+        let mut width: u32 = 0;
+        let mut height: u32 = 0;
+        if args.images {
+            let image = &images[index];
+            (width, height) = get_terminal_image_dimensions(image);
+
+            let conf = Config {
+                absolute_offset: false,
+                width: Some(width),
+                height: Some(height),
+                ..Default::default()
+            };
+
+            viuer::print(image, &conf).unwrap();
+
+            // move cursor to the top of the image
+            print!("\x1B[{}A", height);
+        }
+
+        let print_indentation_if_images = || {
+            if !args.images { return }
+            print!("\x1B[{}C", width + 1);
+        };
+
+        let mut lines_printed = 0;
 
         let mut formatted_game_name = game.game_name.bold();
         if (&args.search).join(" ").to_lowercase() == formatted_game_name.to_lowercase() {
             formatted_game_name = formatted_game_name.green();
         }
+        print_indentation_if_images();
         print!("{}", formatted_game_name);
 
         let mut formatted_steam_link = "".to_string();
@@ -96,13 +166,22 @@ async fn main() {
             formatted_steam_link = format!(" {}", link!(url, label));
         }
         println!("{}", formatted_steam_link);
+        lines_printed += 1;
 
         if args.info {
+            print_indentation_if_images();
             println!("{} {}", "Developer:".truecolor(200, 200, 200), game.profile_dev);
+            lines_printed += 1;
         }
 
-        display_time_component("Main Story", game.comp_main_count, game.comp_main.format().as_str(), &args);
-        display_time_component("Main + Extra", game.comp_plus_count, game.comp_plus.format().as_str(), &args);
-        display_time_component("Completionist", game.comp_100_count, game.comp_100.format().as_str(), &args);
+        let indentation = if args.images { (width + 1) as u8 } else { 0u8 };
+        display_time_component(indentation, "Main Story:   ", game.comp_main_count, game.comp_main.format().as_str(), &args);
+        display_time_component(indentation, "Main + Extra: ", game.comp_plus_count, game.comp_plus.format().as_str(), &args);
+        display_time_component(indentation, "Completionist:", game.comp_100_count, game.comp_100.format().as_str(), &args);
+        lines_printed += 3;
+
+        if args.images && height > lines_printed && height - lines_printed > 0 {
+            print!("{}", "\n".repeat((height - lines_printed) as usize));
+        }
     }
 }

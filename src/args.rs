@@ -278,6 +278,8 @@ pub(crate) struct Args {
     pub(crate) dlc: bool,
     #[clap(long, alias = "nodlc", conflicts_with = "dlc", help = "Hide all DLCs")]
     pub(crate) no_dlc: bool,
+    #[clap(short = 'I', long, default_value_t = false, help = "Show images (using \"viuer\" crate, full resolution images are displayed only in some terminals)")]
+    pub(crate) images: bool,
     #[clap(long, alias = "raw", help = "Output raw JSON")]
     pub(crate) json: bool,
     #[clap(short, long, help = "Show additional information")]
