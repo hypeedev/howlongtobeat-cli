@@ -1,22 +1,16 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct RangeYear {
-    pub min: String,
-    pub max: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Gameplay {
     pub perspective: String,
     pub flow: String,
     pub genre: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct RangeTime {
-    pub min: Option<u32>,
-    pub max: Option<u32>,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct Range {
+    pub min: Option<u16>,
+    pub max: Option<u16>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -29,10 +23,10 @@ pub(crate) struct Games {
     #[serde(rename = "rangeCategory")]
     pub range_category: String,
     #[serde(rename = "rangeTime")]
-    pub range_time: RangeTime,
+    pub range_time: Range,
     pub gameplay: Gameplay,
     #[serde(rename = "rangeYear")]
-    pub range_year: RangeYear,
+    pub range_year: Range,
     pub modifier: String,
 }
 

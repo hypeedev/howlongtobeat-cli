@@ -2,135 +2,22 @@ mod post_result;
 mod post_body;
 mod duration_formatter;
 mod display_time_component;
+mod args;
 
 use post_result::PostResult;
-use post_body::{Body, SearchOptions, Games, RangeTime, Gameplay, RangeYear};
+use post_body::{Body, SearchOptions, Games, Gameplay};
 use duration_formatter::DurationFormatter;
 use display_time_component::display_time_component;
+use args::{Args, ToggleOption};
 
-use std::cmp::PartialEq;
 use reqwest::Client;
-use clap::{Parser, ValueEnum};
-use clap_num::number_range;
+use clap::Parser;
 use colored::Colorize;
-use strum_macros::{Display, EnumString};
 
-#[derive(ValueEnum, Clone, PartialEq, Copy)]
-enum ToggleOption {
-    Always,
-    Never
-}
-
-#[derive(ValueEnum, Clone, PartialEq, EnumString, Display)]
-enum SortCategory {
-    #[strum(serialize = "name")]
-    Name,
-    #[strum(serialize = "main")]
-    Main,
-    #[strum(serialize = "mainp")]
-    #[value(aliases = &["extras", "extra"])]
-    MainExtras,
-    #[strum(serialize = "comp")]
-    #[value(aliases = &["comp", "completion"])]
-    Completionist,
-    #[strum(serialize = "averagea")]
-    #[value(alias = "time")]
-    AverageTime,
-    #[strum(serialize = "rating")]
-    #[value(alias = "rating")]
-    TopRated,
-    #[strum(serialize = "popular")]
-    #[value(aliases = &["popular", "popularity"])]
-    MostPopular,
-    #[strum(serialize = "backlog")]
-    #[value(alias = "backlog")]
-    MostBacklogs,
-    #[strum(serialize = "usersp")]
-    #[value(alias = "submissions")]
-    MostSubmissions,
-    #[strum(serialize = "playing")]
-    #[value(aliases = &["playing", "played"])]
-    MostPlayed,
-    #[strum(serialize = "speedruns")]
-    #[value(alias = "speedrun")]
-    MostSpeedruns,
-    #[strum(serialize = "reviews")]
-    #[value(alias = "reviews")]
-    MostReviews,
-    #[strum(serialize = "release")]
-    #[value(alias = "release")]
-    ReleaseDate
-}
-
-fn parse_year(s: &str) -> Result<u16, String> {
-    number_range(s, 1958, 2024)
-}
-
-#[derive(ValueEnum, Clone, EnumString, Display)]
-enum Platform {
-    #[strum(serialize = "")]
-    All,
-    #[strum(serialize = "Emulated")]
-    Emulated,
-    #[strum(serialize = "Nintendo 3DS")]
-    #[value(name = "nintendo-3ds", aliases = &["nintendo 3ds", "nintendo3ds", "3ds"])]
-    Nintendo3DS,
-    #[strum(serialize = "Nintendo Switch")]
-    #[value(aliases = &["nintendo switch", "switch"])]
-    NintendoSwitch,
-    #[value(alias = "desktop")]
-    PC,
-    #[strum(serialize = "PlayStation 3")]
-    #[value(name = "playstation3", aliases = &["playstation 3", "ps3", "ps 3"])]
-    PlayStation3,
-    #[strum(serialize = "PlayStation 4")]
-    #[value(name = "playstation4", aliases = &["playstation 4", "ps4", "ps 4"])]
-    PlayStation4,
-    #[strum(serialize = "PlayStation 5")]
-    #[value(name = "playstation5", aliases = &["playstation 5", "ps5", "ps 5"])]
-    PlayStation5,
-    #[strum(serialize = "PlayStation Now")]
-    #[value(name = "playstation-now", aliases = &["playstation now", "playstationnow", "psnow", "ps now"])]
-    PlayStationNow,
-    #[strum(serialize = "Wii U")]
-    #[value(aliases = &["wii u", "wiiu"])]
-    WiiU,
-    #[strum(serialize = "Xbox 360")]
-    #[value(aliases = &["xbox 360", "xbox-360", "x360", "360"])]
-    Xbox360,
-    #[strum(serialize = "Xbox One")]
-    #[value(aliases = &["xbox one", "xboxone", "xone", "one"])]
-    XboxOne,
-    #[strum(serialize = "Xbox Series X/S")]
-    #[value(aliases = &["xbox xs", "xbox-xs", "xboxxs", "xs"])]
-    XboxSeriesXS
-}
-
-#[derive(Parser)]
-struct Args {
-    search: Vec<String>,
-    #[clap(short, long, default_value_t = 5, help = "Number of results to display")]
-    size: u8,
-    #[clap(short, long, default_value_t = ToggleOption::Always, value_enum, ignore_case = true, help = "Colorize output")]
-    color: ToggleOption,
-    #[clap(short = 'S', long, default_value_t = SortCategory::MostPopular, value_enum, ignore_case = true, help = "Sort by category")]
-    sort: SortCategory,
-    #[clap(short, long, default_value_t = false, help = "Reverse sort order")]
-    reverse: bool,
-    #[clap(long, alias = "min-year", default_value_t = 1958, value_parser=parse_year, help = "Minimum release year")]
-    year_min: u16,
-    #[clap(long, alias = "max-year", default_value_t = 2024, value_parser=parse_year, help = "Maximum release year")]
-    year_max: u16,
-    #[clap(short, long, default_value = "all", value_enum, ignore_case = true, help = "Platform to search for")]
-    platform: Platform,
-    #[clap(long, conflicts_with = "no_dlc", help = "Show only DLCs")]
-    dlc: bool,
-    #[clap(long, alias = "nodlc", conflicts_with = "dlc", help = "Hide all DLCs")]
-    no_dlc: bool,
-    #[clap(long, alias = "raw", help = "Output raw JSON")]
-    json: bool,
-    #[clap(short, long, help = "Show additional information")]
-    info: bool
+macro_rules! link {
+    ($url:expr, $text:expr) => {
+        format!("\x1B]8;;{}\x1B\\{}\x1B]8;;\x1B\\", $url, $text)
+    };
 }
 
 #[tokio::main]
@@ -161,19 +48,13 @@ async fn main() {
                 platform: args.platform.to_string(),
                 sort_category: args.sort.to_string(),
                 range_category: "main".to_string(),
-                range_time: RangeTime {
-                    min: None,
-                    max: None,
-                },
+                range_time: args.range_time.clone(),
                 gameplay: Gameplay {
-                    perspective: "".to_string(),
-                    flow: "".to_string(),
-                    genre: "".to_string(),
+                    perspective: args.perspective.to_string(),
+                    flow: args.flow.to_string(),
+                    genre: args.genre.to_string(),
                 },
-                range_year: RangeYear {
-                    min: args.year_min.to_string(),
-                    max: args.year_max.to_string(),
-                },
+                range_year: args.range_year.clone(),
                 modifier: if args.dlc { "only_dlc" } else if args.no_dlc { "hide_dlc" } else { "Modifiers" }.to_string(),
             },
             filter: "".to_string(),
@@ -210,7 +91,9 @@ async fn main() {
 
         let mut formatted_steam_link = "".to_string();
         if game.profile_steam != 0 {
-            formatted_steam_link = format!(" \x1B]8;;https://store.steampowered.com/app/{}\x1B\\{}\x1B]8;;\x1B\\", game.profile_steam, "[Steam Store Page]".blue().underline());
+            let url = "https://store.steampowered.com/app/".to_owned() + &*game.profile_steam.to_string();
+            let label = "[Steam Store Page]".blue().underline();
+            formatted_steam_link = format!(" {}", link!(url, label));
         }
         println!("{}", formatted_steam_link);
 
