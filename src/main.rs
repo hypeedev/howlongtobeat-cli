@@ -175,10 +175,9 @@ async fn main() {
         }
 
         let indentation = if args.images { (width + 1) as u8 } else { 0u8 };
-        display_time_component(indentation, "Main Story:   ", game.comp_main_count, game.comp_main.format().as_str(), &args);
-        display_time_component(indentation, "Main + Extra: ", game.comp_plus_count, game.comp_plus.format().as_str(), &args);
-        display_time_component(indentation, "Completionist:", game.comp_100_count, game.comp_100.format().as_str(), &args);
-        lines_printed += 3;
+        lines_printed += display_time_component(indentation, "Main Story:   ", game.comp_main_count, game.comp_main.format().as_str(), &args);
+        lines_printed += display_time_component(indentation, "Main + Extra: ", game.comp_plus_count, game.comp_plus.format().as_str(), &args);
+        lines_printed += display_time_component(indentation, "Completionist:", game.comp_100_count, game.comp_100.format().as_str(), &args);
 
         if args.images && height > lines_printed && height - lines_printed > 0 {
             print!("{}", "\n".repeat((height - lines_printed) as usize));
