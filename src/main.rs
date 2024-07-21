@@ -189,7 +189,7 @@ async fn main() {
                 ("Playing:", game.count_playing.to_string()),
                 ("Backlogs:", game.count_backlog.to_string()),
                 ("Retired:", format!("{:0.1}%", game.count_retired as f32 / all_players as f32 * 100.0)),
-                ("Rating:", format!("{}%", game.review_score)),
+                ("Rating:", if game.review_score == 0 { "NR".to_string() } else { format!("{}%", game.review_score) }),
                 ("Beat:", game.count_comp.to_string())
             ]
                 .into_iter()
