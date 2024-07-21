@@ -1,18 +1,17 @@
 mod post_result;
 mod post_body;
 mod duration_formatter;
-mod display_time_component;
+mod display_time_components;
 mod args;
 
 use post_result::PostResult;
 use post_body::{Body, SearchOptions, Games, Gameplay};
-use duration_formatter::DurationFormatter;
-use display_time_component::display_time_component;
+use display_time_components::display_time_components;
 use args::{Args, ToggleOption};
 
 use reqwest::{Client, ClientBuilder};
 use clap::Parser;
-use colored::Colorize;
+use colored::{ColoredString, Colorize};
 use viuer::Config;
 use image::DynamicImage;
 use futures::future::join_all;
@@ -117,7 +116,7 @@ async fn main() {
 
     let mut images: Vec<DynamicImage> = Vec::new();
     if args.images {
-        let urls: Vec<String> = res.data.iter().map(|game| "https://howlongtobeat.com/games/".to_owned() + &*game.game_image.to_string() + "?width=100").collect();
+        let urls: Vec<String> = res.data.iter().map(|game| format!("https://howlongtobeat.com/games/{}?width=100", game.game_image)).collect();
         images = fetch_images(client, urls.clone()).await;
     }
 
@@ -145,39 +144,63 @@ async fn main() {
             print!("\x1B[{}A", height);
         }
 
+        let mut lines_printed = 0;
+
         let print_indentation_if_images = || {
             if !args.images { return }
+            // move cursor to the right of the image
             print!("\x1B[{}C", width + 1);
         };
 
-        let mut lines_printed = 0;
+        macro_rules! println {
+            () => {
+                print_indentation_if_images();
+                print!("\n");
+                lines_printed += 1;
+            };
+            ($($arg:tt)*) => {
+                print_indentation_if_images();
+                print!($($arg)*);
+                print!("\n");
+                lines_printed += 1;
+            };
+        }
 
         let mut formatted_game_name = game.game_name.bold();
         if (&args.search).join(" ").to_lowercase() == formatted_game_name.to_lowercase() {
             formatted_game_name = formatted_game_name.green();
         }
-        print_indentation_if_images();
-        print!("{}", formatted_game_name);
 
-        let mut formatted_steam_link = "".to_string();
         if game.profile_steam != 0 {
             let url = "https://store.steampowered.com/app/".to_owned() + &*game.profile_steam.to_string();
             let label = "[Steam Store Page]".blue().underline();
-            formatted_steam_link = format!(" {}", link!(url, label));
+            formatted_game_name = ColoredString::from(format!("{} {}", formatted_game_name, link!(url, label)));
         }
-        println!("{}", formatted_steam_link);
-        lines_printed += 1;
+
+        println!("{}", formatted_game_name);
 
         if args.info {
-            print_indentation_if_images();
             println!("{} {}", "Developer:".truecolor(200, 200, 200), game.profile_dev);
-            lines_printed += 1;
+        }
+
+        if args.info {
+            let all_players = game.count_comp + game.count_backlog + game.count_retired;
+            let components = vec![
+                ("Playing:", game.count_playing.to_string()),
+                ("Backlogs:", game.count_backlog.to_string()),
+                ("Retired:", format!("{:0.1}%", game.count_retired as f32 / all_players as f32 * 100.0)),
+                ("Rating:", format!("{}%", game.review_score)),
+                ("Beat:", game.count_comp.to_string())
+            ]
+                .into_iter()
+                .map(|(label, count)| format!("{} {}", label.truecolor(200, 200, 200), count))
+                .collect::<Vec<String>>()
+                .join(", ");
+            println!("{}", components);
         }
 
         let indentation = if args.images { (width + 1) as u8 } else { 0u8 };
-        lines_printed += display_time_component(indentation, "Main Story:   ", game.comp_main_count, game.comp_main.format().as_str(), &args);
-        lines_printed += display_time_component(indentation, "Main + Extra: ", game.comp_plus_count, game.comp_plus.format().as_str(), &args);
-        lines_printed += display_time_component(indentation, "Completionist:", game.comp_100_count, game.comp_100.format().as_str(), &args);
+        lines_printed += display_time_components(indentation, game, &args);
 
         if args.images && height > lines_printed && height - lines_printed > 0 {
             print!("{}", "\n".repeat((height - lines_printed) as usize));

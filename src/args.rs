@@ -31,10 +31,10 @@ pub(crate) enum SortCategory {
     #[value(aliases = &["popular", "popularity"])]
     MostPopular,
     #[strum(serialize = "backlog")]
-    #[value(alias = "backlog")]
+    #[value(aliases = &["backlog", "backlogs"])]
     MostBacklogs,
     #[strum(serialize = "usersp")]
-    #[value(alias = "submissions")]
+    #[value(aliases = &["submissions", "beat"])]
     MostSubmissions,
     #[strum(serialize = "playing")]
     #[value(aliases = &["playing", "played"])]
