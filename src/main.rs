@@ -3,11 +3,13 @@ mod post_body;
 mod duration_formatter;
 mod display_time_components;
 mod args;
+mod get_search_hash;
 
 use post_result::PostResult;
 use post_body::{Body, SearchOptions, Games, Gameplay};
 use display_time_components::display_time_components;
 use args::{Args, ToggleOption};
+use get_search_hash::get_search_hash;
 
 use reqwest::{Client, ClientBuilder};
 use clap::Parser;
@@ -103,8 +105,10 @@ async fn main() {
             )
         )
         .build().unwrap();
+
+    let search_hash = get_search_hash(&client).await;
     let res = client
-        .post("https://howlongtobeat.com/api/search")
+        .post(format!("https://howlongtobeat.com/api/search/{}", search_hash))
         .body(serde_json::to_string(&body).unwrap())
         .send()
         .await.unwrap().json::<PostResult>().await.unwrap();
