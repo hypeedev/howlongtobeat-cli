@@ -264,7 +264,7 @@ pub(crate) struct Args {
     #[clap(short = 'S', long, default_value_t = SortCategory::MostPopular, value_enum, ignore_case = true, help = "Sort by category")]
     pub(crate) sort: SortCategory,
 
-    #[clap(short, long, default_value_t = false, conflicts_with = "randomize", help = "Reverse sort order")]
+    #[clap(short, long, default_value_t = false, conflicts_with = "random", help = "Reverse sort order")]
     pub(crate) reverse: bool,
 
     #[clap(short = 'R', long, default_value_t = false, conflicts_with = "reverse", help = "Randomly select one title")]
