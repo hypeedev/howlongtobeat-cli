@@ -217,7 +217,7 @@ pub(crate) enum Genre {
 }
 
 fn parse_range(s: &str, min: u16, max: u16) -> Result<Range, String> {
-    if s == "" { return Ok(Range { min: None, max: None }) }
+    if s.is_empty() { return Ok(Range { min: None, max: None }) }
 
     let parts = s.split('-').collect::<Vec<&str>>();
     let mut split: Vec<u16> = Vec::new();

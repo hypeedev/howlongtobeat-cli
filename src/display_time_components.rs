@@ -37,7 +37,8 @@ pub fn display_time_components(indentation: u8, game: Game, args: &Args) -> u32 
             ("Completionist:", game.comp_100.format(), game.comp_100_count)
         ];
     }
-    components = components.into_iter().filter(|(_, _, count)| *count > 0).collect();
+    // components = components.into_iter().filter(|(_, _, count)| *count > 0).collect();
+    components.retain(|(_, _, count)| *count > 0);
 
     let max_length = components.iter().map(|(_, time, _)| time.len())
         .max().unwrap_or(0);

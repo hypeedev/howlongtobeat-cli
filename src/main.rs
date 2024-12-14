@@ -38,8 +38,7 @@ async fn fetch_images(client: Client, urls: Vec<String>) -> Vec<DynamicImage> {
         async move {
             let image = client.get(url).send().await.unwrap().bytes().await.unwrap();
             let image = image::load_from_memory(&image).unwrap();
-            let image = DynamicImage::ImageRgba8(image.to_rgba8());
-            image
+            DynamicImage::ImageRgba8(image.to_rgba8())
         }
     });
     join_all(futures).await
@@ -169,7 +168,7 @@ async fn main() {
         }
 
         let mut formatted_game_name = game.game_name.bold();
-        if (&args.search).join(" ").to_lowercase() == formatted_game_name.to_lowercase() {
+        if args.search.join(" ").to_lowercase() == formatted_game_name.to_lowercase() {
             formatted_game_name = formatted_game_name.green();
         }
 
