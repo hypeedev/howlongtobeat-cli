@@ -13,8 +13,8 @@ pub async fn get_search_hash(client: &Client) -> String {
         .send().await.unwrap()
         .text().await.unwrap();
 
-    let re = Regex::new(r#""/api/search/"\.concat\("([a-f0-9]+?)"\)"#).unwrap();
-    let search_hash = re.captures(&app_script).unwrap().get(1).unwrap().as_str();
+    let re = Regex::new(r#""/api/find/"\.concat\("([a-f0-9]+?)"\)\.concat\("([a-f0-9]+?)"\)"#).unwrap();
+    let search_hash = re.captures(&app_script).unwrap().iter().skip(1).map(|x| x.unwrap().as_str()).collect::<Vec<&str>>().join("");
 
     search_hash.to_string()
 }

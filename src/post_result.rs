@@ -21,7 +21,6 @@ pub(crate) struct Game {
     pub comp_lvl_sp: u8,
     pub comp_lvl_co: u8,
     pub comp_lvl_mp: u8,
-    pub comp_lvl_spd: u8,
     #[serde(deserialize_with = "deserialize_duration")]
     pub comp_main: Duration,
     #[serde(deserialize_with = "deserialize_duration")]
@@ -47,9 +46,7 @@ pub(crate) struct Game {
     pub review_score: u8,
     pub count_playing: u32,
     pub count_retired: u32,
-    pub profile_dev: String,
     pub profile_popular: u32,
-    pub profile_steam: u32,
     pub profile_platform: String,
     pub release_world: u16,
 }

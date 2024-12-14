@@ -5,6 +5,7 @@ pub(crate) struct Gameplay {
     pub perspective: String,
     pub flow: String,
     pub genre: String,
+    pub difficulty: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -31,10 +32,25 @@ pub(crate) struct Games {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub(crate) struct Lists {
+    #[serde(rename = "sortCategory")]
+    pub sort_category: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub(crate) struct Users {
+    #[serde(rename = "sortCategory")]
+    pub sort_category: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct SearchOptions {
     pub games: Games,
     pub filter: String,
-    pub sort: u8
+    pub sort: u8,
+    pub randomizer: u8,
+    pub lists: Option<Lists>,
+    pub users: Option<Users>
 }
 
 #[derive(Serialize, Deserialize, Debug)]

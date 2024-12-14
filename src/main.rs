@@ -13,16 +13,10 @@ use get_search_hash::get_search_hash;
 
 use reqwest::{Client, ClientBuilder};
 use clap::Parser;
-use colored::{ColoredString, Colorize};
+use colored::Colorize;
 use viuer::Config;
 use image::DynamicImage;
 use futures::future::join_all;
-
-macro_rules! link {
-    ($url:expr, $text:expr) => {
-        format!("\x1B]8;;{}\x1B\\{}\x1B]8;;\x1B\\", $url, $text)
-    };
-}
 
 fn get_terminal_image_dimensions(image: &DynamicImage) -> (u32, u32) {
     let ratio = image.width() as f32 / image.height() as f32;
@@ -84,12 +78,16 @@ async fn main() {
                     perspective: args.perspective.to_string(),
                     flow: args.flow.to_string(),
                     genre: args.genre.to_string(),
+                    difficulty: "".to_string(),
                 },
                 range_year: args.range_year.clone(),
                 modifier: if args.dlc { "only_dlc" } else if args.no_dlc { "hide_dlc" } else { "Modifiers" }.to_string(),
             },
             filter: "".to_string(),
-            sort: args.reverse as u8
+            sort: args.reverse as u8,
+            randomizer: args.random as u8,
+            lists: None,
+            users: None,
         },
         use_cache: true,
     };
@@ -108,7 +106,7 @@ async fn main() {
 
     let search_hash = get_search_hash(&client).await;
     let res = client
-        .post(format!("https://howlongtobeat.com/api/search/{}", search_hash))
+        .post(format!("https://howlongtobeat.com/api/find/{}", search_hash))
         .body(serde_json::to_string(&body).unwrap())
         .send()
         .await.unwrap().json::<PostResult>().await.unwrap();
@@ -175,17 +173,7 @@ async fn main() {
             formatted_game_name = formatted_game_name.green();
         }
 
-        if game.profile_steam != 0 {
-            let url = "https://store.steampowered.com/app/".to_owned() + &*game.profile_steam.to_string();
-            let label = "[Steam Store Page]".blue().underline();
-            formatted_game_name = ColoredString::from(format!("{} {}", formatted_game_name, link!(url, label)));
-        }
-
         println!("{}", formatted_game_name);
-
-        if args.info {
-            println!("{} {}", "Developer:".truecolor(200, 200, 200), game.profile_dev);
-        }
 
         if args.info {
             let all_players = game.count_comp + game.count_backlog + game.count_retired;

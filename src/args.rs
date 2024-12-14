@@ -254,34 +254,52 @@ fn parse_range_year(s: &str) -> Result<Range, String> {
 #[derive(Parser)]
 pub(crate) struct Args {
     pub(crate) search: Vec<String>,
+
     #[clap(short, long, default_value_t = 5, help = "Number of results to display")]
     pub(crate) size: u8,
+
     #[clap(short, long, default_value_t = ToggleOption::Always, value_enum, ignore_case = true, help = "Colorize output")]
     pub(crate) color: ToggleOption,
+
     #[clap(short = 'S', long, default_value_t = SortCategory::MostPopular, value_enum, ignore_case = true, help = "Sort by category")]
     pub(crate) sort: SortCategory,
-    #[clap(short, long, default_value_t = false, help = "Reverse sort order")]
+
+    #[clap(short, long, default_value_t = false, conflicts_with = "randomize", help = "Reverse sort order")]
     pub(crate) reverse: bool,
+
+    #[clap(short = 'R', long, default_value_t = false, conflicts_with = "reverse", help = "Randomly select one title")]
+    pub(crate) random: bool,
+
     #[clap(long, alias = "year", default_value = "", value_parser=parse_range_year, help = "Range of years to search for, example: 2000-2010")]
     pub(crate) range_year: Range,
+
     #[clap(short, long, default_value = "all", value_enum, ignore_case = true, help = "Platform to search for")]
     pub(crate) platform: Platform,
+
     #[clap(short = 'P', long, default_value = "all", value_enum, ignore_case = true, help = "Game perspective")]
     pub(crate) perspective: Perspective,
+
     #[clap(short, long, default_value = "all", value_enum, ignore_case = true, help = "Game flow")]
     pub(crate) flow: Flow,
+
     #[clap(short, long, default_value = "all", value_enum, ignore_case = true, help = "Game genre")]
     pub(crate) genre: Genre,
+
     #[clap(long, alias = "time", default_value = "", value_parser=parse_range_time, help = "Range of time to search for (in hours), example: 10-20")]
     pub(crate) range_time: Range,
+
     #[clap(long, conflicts_with = "no_dlc", help = "Show only DLCs")]
     pub(crate) dlc: bool,
+
     #[clap(long, alias = "nodlc", conflicts_with = "dlc", help = "Hide all DLCs")]
     pub(crate) no_dlc: bool,
+
     #[clap(short = 'I', long, default_value_t = false, help = "Show images (using \"viuer\" crate, full resolution images are displayed only in some terminals)")]
     pub(crate) images: bool,
+
     #[clap(long, alias = "raw", help = "Output raw JSON")]
     pub(crate) json: bool,
+
     #[clap(short, long, help = "Show additional information")]
     pub(crate) info: bool
 }
